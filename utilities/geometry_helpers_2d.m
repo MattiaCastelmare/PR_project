@@ -31,6 +31,11 @@ function J = J_atan2(p)
   J= 1./n2 * [-p(2) p(1)];
 endfunction
 
+#computes the trajectory of the robot by chaining up
+#the incremental movements of the odometry vector
+#U:	a Nx3 matrix, each row contains the odoemtry ux, uy utheta
+#T:	a Nx3 matrix, each row contains the robot position (starting from 0,0,0)
+
 function T=compute_odometry_trajectory(U)
 	T=zeros(size(U,1),3);
 	current_T=v2t(zeros(1,3));

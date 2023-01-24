@@ -72,5 +72,3 @@ for i = 0 : 199
     image_x = vertcat(image_x,d(3:end-1));
     image_y = vertcat(image_y,f(3:end-1));
 end
-
-sdefefef
