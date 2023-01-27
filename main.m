@@ -19,16 +19,16 @@ data_trajectory = load("data/trajectory.dat");
 # PLOT the groundtruth trajectory 
 TrueTrajectory=compute_odometry_trajectory(data_trajectory(:,2:4));
 disp('Groundtruth trajectory');
-#hold on;
-#plot(TrueTrajectory(:,1),TrueTrajectory(:,2), 'r-', 'linewidth', 2);
-#pause(1);
+hold on;
+plot(TrueTrajectory(:,1),TrueTrajectory(:,2), 'r-', 'linewidth', 2);
+pause(1);
 
 # PLOT the odometry trajectory
 OdomTrajectory=compute_odometry_trajectory(data_trajectory(:,5:7));
 disp('Odometry trajectory');
-#hold on;
-#plot(OdomTrajectory(:,1),OdomTrajectory(:,2), 'g-', 'linewidth', 2);
-#pause(1);
+hold on;
+plot(OdomTrajectory(:,1),OdomTrajectory(:,2), 'g-', 'linewidth', 2);
+pause(10);
 
 # Load measurement and create data structure 
 [odometry_pose, dict_pos_land] = load_measurements();
@@ -39,4 +39,4 @@ dict_point_initial_guess = containers.Map('KeyType','double','ValueType','any');
 X_guess = ones(1,10000)*-1;
 
 
-A = -10 + rand(3,1)*20
+A = -10 + rand(3,1)*20;
