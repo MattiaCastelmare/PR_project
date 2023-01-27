@@ -10,7 +10,7 @@ function [K, T_cam, z_near, z_far, widht, height] = load_camera_parameters()
     height = data_camera(13,2);
 end
 
-function [odometry_pose, dict_pos_land] = load_measurements()
+function [pos, odometry_pose, dict_pos_land] = load_measurements()
 
     dict_pos_land = containers.Map('KeyType','double','ValueType','any'); # dict in which KEYS = number of robot poses VALUES = landmark dictionary
 
@@ -37,7 +37,7 @@ function [odometry_pose, dict_pos_land] = load_measurements()
 
         measurement_number = b(3:end-1); 
         
-        landmark_id = c(3:end-1); # list of landmark id
+        landmark_id = c(3:end-1) + 1; # list of landmark id
         image_x = d(3:end-1); # list of image coordinates
         image_y = f(3:end-1);
 
