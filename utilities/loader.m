@@ -19,7 +19,7 @@ function [pos, odometry_pose, dict_pos_land] = load_measurements()
         if i < 10
         num = num2str(i);
         filename = strcat("data/meas-0000",num,".dat");
-        elseif i > 9 && i < 100
+        elseif i > 9 & i < 100
         num = num2str(i);
         filename = strcat("data/meas-000",num,".dat");
         else
@@ -37,14 +37,19 @@ function [pos, odometry_pose, dict_pos_land] = load_measurements()
 
         measurement_number = b(3:end-1); 
         
-        landmark_id = c(3:end-1) + 1; # list of landmark id
-        image_x = d(3:end-1); # list of image coordinates
-        image_y = f(3:end-1);
+        landmark_id = c(3:end) + 1; # list of landmark id
+        image_x = d(3:end); # list of image coordinates
+        image_y = f(3:end);
+
+        landmark_id = landmark_id(~isnan(landmark_id));
+        image_x = image_x(~isnan(image_x));
+        image_y = image_y(~isnan(image_y));
 
         pair = [image_x, image_y];
         values = num2cell(pair,2);
         dict_land_id = containers.Map(landmark_id, values);  # dict in which KEYS = landmark id VALUES = x and y in the images
-        
+
+
         dict_pos_land(pos(i+1)) = dict_land_id;
     end
 

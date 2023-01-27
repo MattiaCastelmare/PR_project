@@ -3,7 +3,7 @@ function Xl_initial_guess = triangulation(pos, odometry_pose, dict_pos_land, K, 
     dict_matrix = containers.Map('KeyType','double','ValueType','any'); # dict in which KEYS = id of landmarks VALUES = matrix A for the optimization problem
 
     cam = K*eye(3,4)*inv(T_cam); # first part of the projection matrix without the camera pose
-    Xl_initial_guess = {};
+
     # create the dictionary 
     for i = 1:size(pos)
         for k = keys(dict_pos_land(i))
@@ -24,8 +24,13 @@ function Xl_initial_guess = triangulation(pos, odometry_pose, dict_pos_land, K, 
     disp("********************* SVD and determining landmark positions **********************");
 
     for lan = keys(dict_matrix)
-        [U, D, Vt] = svd(dict_matrix(lan{1}));
-        Xl_initial_guess(lan{1}) = [Vt(4,1)/Vt(4,4); Vt(4,2)/Vt(4,4); Vt(4,3)/Vt(4,4)];
+     
+        [U, D, V] = svd(dict_matrix(lan{1}));
+        Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4)];
     end
 
+    
 end
+
+
+#function [robot_pose, landmarks_location] = DoTLS(pos, K, T_cam, odometry_pose, Xl_initial_guess, )
