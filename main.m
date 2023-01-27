@@ -13,30 +13,29 @@ disp('************************** Loading the camera data ***********************
 [K, T_cam, z_near, z_far, widht, height] = load_camera_parameters();
 
 #load trajectory data #
-disp('************************** Loading the trajectory data ******************************');
+disp('************************** Loading the trajectory data **************************');
 data_trajectory = load("data/trajectory.dat");
 
 # PLOT the groundtruth trajectory 
 TrueTrajectory=compute_odometry_trajectory(data_trajectory(:,2:4));
 disp('Groundtruth trajectory');
-hold on;
-plot(TrueTrajectory(:,1),TrueTrajectory(:,2), 'r-', 'linewidth', 2);
-pause(1);
+#hold on;
+#plot(TrueTrajectory(:,1),TrueTrajectory(:,2), 'r-', 'linewidth', 2);
+#pause(1);
 
 # PLOT the odometry trajectory
 OdomTrajectory=compute_odometry_trajectory(data_trajectory(:,5:7));
 disp('Odometry trajectory');
-hold on;
-plot(OdomTrajectory(:,1),OdomTrajectory(:,2), 'g-', 'linewidth', 2);
-pause(10);
-
+#hold on;
+#plot(OdomTrajectory(:,1),OdomTrajectory(:,2), 'g-', 'linewidth', 2);
+#pause(1);
+disp("***************** Loading measurement and creating data structure ***************");
 # Load measurement and create data structure 
-[odometry_pose, dict_pos_land] = load_measurements();
+[pos, odometry_pose, dict_pos_land] = load_measurements();
 
-
+disp("************************** Performing triangulation *****************************");
 ################## TRIANGULATION ##################
-dict_point_initial_guess = containers.Map('KeyType','double','ValueType','any'); # store a dictionary in which the keys are the id of the landmark and the values are its coordinates in the world
-X_guess = ones(1,10000)*-1;
+
+Xl_initial_guess = triangulation(pos, odometry_pose, dict_pos_land, K, T_cam); # initial guess for landmark position
 
 
-A = -10 + rand(3,1)*20;
