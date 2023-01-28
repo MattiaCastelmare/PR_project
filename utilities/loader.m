@@ -47,10 +47,10 @@ function [pos, odometry_pose, dict_pos_land] = load_measurements()
 
         pair = [image_x, image_y];
         values = num2cell(pair,2);
-        dict_land_id = containers.Map(landmark_id, values);  # dict in which KEYS = landmark id VALUES = x and y in the images
+        dict_land_id = containers.Map(landmark_id, values);  # dict in which KEYS = landmark id VALUES = [x;y] of landmark in the corresponding images
 
 
-        dict_pos_land(pos(i+1)) = dict_land_id;
+        dict_pos_land(pos(i+1)) = dict_land_id; # dict in which KEYS = number of robot poses VALUES = landmark dictionary
     end
 
 end
