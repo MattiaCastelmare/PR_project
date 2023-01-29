@@ -39,14 +39,14 @@ endfunction
 
 
 
-function [error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height)
+function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height)
 
     valid_point = 1;
     Picp = eye(3,4)*inv(T_cam)*inv(v2t(Xr))*Xl; # icp point
     Pcam = K*Picp; # point in camera frame
 
     prediction = [Pcam(1)/Pcam(3); Pcam(2)/Pcam(3)]; # point in image plane
-    error = prediction - Z;
+    proj_error = prediction - Z;
 
     Jproj = [1/Pcam(3), 0, - Pcam(1)/Pcam(3)*2;
             0,     1/Pcam(3), -Pcam(2)/Pcam(3)*2]; # Jacobian of the projection
@@ -57,13 +57,14 @@ function [error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, 
     pw = iR*Xl(1:end-1) + it; # poin in world reference frame
     Jwr(1:3,1:3) = -iR; # translation part of the robot Jacobian
     Jwr(1:3, 4:6) = iR*skew(Xl(1:end-1)); # rotation part of the robot Jacobian
+    Jwr = Jwr(1:3, [1,2,6]);
     Jwl = iR; # landmark Jacobian
 
-    Jr = Jproj*K*Jwr
+    Jr = Jproj*K*Jwr;
     Jl = Jproj*K*Jwl;
 
-    if Pcam(3)> z_far | Pcam(3) < z_near | prediction(1) < 0 | prediction(1) > img_width | prediction(2) < 0 | prediction(2) > img_height
-        valid_point = 0
+    if Pcam(3)> z_far || Pcam(3) < z_near || prediction(1) < 0 || prediction(1) > img_width || prediction(2) < 0 || prediction(2) > img_height;
+        valid_point = 0;
     endif
      
 endfunction
@@ -84,15 +85,15 @@ function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_lan
         Xr = XR(:,pose_index);
         for landmark_index = keys(dict_pos_land(pose_index))
             Xl = XL(:,landmark_index{1}); # in the matrix Xl i choose the columns corresponding to the k^th landmark
-            Z = dict_pos_land(pose_index)(landmark_index{1}); # projection of the k^th landmark in the i^th robot pose
+            Z = dict_pos_land(pose_index)(landmark_index{1})'; # projection of the k^th landmark in the i^th robot pose
 
-            [proj_error, Jr, Jl, point_valid] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height);
+            [proj_error, Jr, Jl, point_not_valid] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height);
 
-            if point_valid
+            if point_not_valid
                 chi = proj_error'*proj_error;
                 if chi > threshold
                     proj_error*= sqrt(threshold/chi);
-                    chi = threshold
+                    chi = threshold;
                 else
                     num_inliers +=1;
                 end
@@ -101,7 +102,6 @@ function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_lan
             end
             pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
             landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
-            
 
             Hrr = Jr'*Jr;
             Hrl = Jr'*Jl;

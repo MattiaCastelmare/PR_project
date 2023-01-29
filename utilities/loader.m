@@ -8,7 +8,7 @@ function [K, T_cam, z_near, z_far, widht, height] = load_camera_parameters()
     z_far = data_camera(11,2);
     widht = data_camera(12,2);
     height = data_camera(13,2);
-end
+endfunction
 
 function [pos, odometry_pose, dict_pos_land] = load_measurements()
 
@@ -41,16 +41,16 @@ function [pos, odometry_pose, dict_pos_land] = load_measurements()
         image_x = d(3:end); # list of image coordinates
         image_y = f(3:end);
 
-        landmark_id = landmark_id(~isnan(landmark_id));
+        landmark_id = landmark_id(~isnan(landmark_id)); # remove Nan values
         image_x = image_x(~isnan(image_x));
         image_y = image_y(~isnan(image_y));
 
         pair = [image_x, image_y];
         values = num2cell(pair,2);
+
         dict_land_id = containers.Map(landmark_id, values);  # dict in which KEYS = landmark id VALUES = [x;y] of landmark in the corresponding images
 
-
         dict_pos_land(pos(i+1)) = dict_land_id; # dict in which KEYS = number of robot poses VALUES = landmark dictionary
-    end
+    endfor
 
-end
+endfunction
