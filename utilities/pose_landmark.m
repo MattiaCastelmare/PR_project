@@ -26,9 +26,7 @@ function Xl_initial_guess = triangulation(K, T_cam, pos, odometry_pose, dict_pos
 
         end
     end
-
-    disp("********************* SVD and initial guess **********************");
-   
+  
     for lan = keys(dict_matrix)
      
         [U, D, V] = svd(dict_matrix(lan{1}));
@@ -37,8 +35,18 @@ function Xl_initial_guess = triangulation(K, T_cam, pos, odometry_pose, dict_pos
     end
 endfunction
 
-
-
+# Error and jacobian of projection
+# Input: K: camera matrix
+#        T_cam: transformation matrix of the camera
+#        Xr: robot pose in world reference frame (4x4 homogenous matrix)
+#        Xl: landmark pose in world reference frame (4x1 vector)
+#        Z: measurement of the projection of the landmark in the image plane
+#        z_near, z_far, img_width, img_height camera parameters
+#
+# Output: proj_error: 2x1 projection error in the image (prediction - measurement)
+#         Jr: 2x3 Jacobian w.r.t. the perturbation of the robot pose (x, y and theta)
+#         Jl: 2x3 Jacobian w.r.t. the perturbation of the landmark (xl, yl and zl)
+#         valid_point: boolean that indicates if the predicted point respects the bounds
 function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height)
 
     valid_point = 1;
@@ -69,12 +77,18 @@ function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr,
      
 endfunction
 
-function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_land, num_poses, num_landmarks, threshold, pos_dim, landmark_dim, z_near, z_far, img_width, img_height)
-    # Xr = odometry pose MATRIX rows = vector of the pose columns = the number of the pose 
-    # Xl = initial guess MATRIX rows = coords of landmark columns = landmark id
+# Function that determines H and b matrices
+# Input: K: camera matrix
+#        T_cam: transformation matrix of the camera
+#        XR: matrix of robot pose in world reference frame (rows = vector of robot pose, columns = number of pose)
+#        Xl: matrix of landmark in world reference frame (rows = landmark coordinates, columns = id of landmark)
+#        dict_pos_land: dictionary in which KEYS = num of poses e VALUES = dict in which KEYS = land_id VALUES = projection in the image
+#
+# Output: H: matrix for the Gaussian algorithm
+#         b: vector for the Gaussian algorithm
 
-    # dict_pos_land dictionary in which keys = num of poses e values = dict in which keys = land_id keys = projections
-    
+function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_land, num_poses, num_landmarks, threshold, pos_dim, landmark_dim, z_near, z_far, img_width, img_height)
+
     system_size = pos_dim*num_poses + landmark_dim*num_landmarks;
     H = zeros(system_size, system_size);
     b = zeros(system_size, 1);

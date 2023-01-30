@@ -272,10 +272,26 @@ function T=compute_odometry_trajectory(U)
 
 endfunction
 
-function [Xr1, Xl1] = Boxplus_pos_land(Xr, dxr, Xl, dxl)
-    Xr1 = v2t(dxr)*Xr;
-    Xl1 = Xl + dxl;
-endfunction
+function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
+  global pos_dim;
+  global landmark_dim;
+  for(pose_index=1:num_poses)
+    pose_matrix_index=poseMatrixIndex(pose_index,
+                                      num_poses,
+                                      num_landmarks);
+
+    dxr=dx(pose_matrix_index:pose_matrix_index+pos_dim-1);
+    XR(:,:,pose_index)=v2t2d(dxr)*v2t2d(Xr(:,pose_index));
+    
+  endfor;
+  for(landmark_index=1:num_landmarks)
+    landmark_matrix_index=landmarkMatrixIndex(landmark_index,
+                                                  num_poses,
+                                                  num_landmarks);
+    dxl=dx(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,:);
+    XL(1:end-1,landmark_index)+=dxl;
+  endfor;
+endfunction;
 
 
 function pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks)
@@ -299,4 +315,12 @@ function land_matrix_index = landmarkMatrixIndex(land_index, num_poses, num_land
       return;
     endif   
     
+endfunction
+
+function robot_measurement = odometry_measure(odometry_pose);
+    for columns = 1:(size(odometry_pose)(2) - 1)
+        Xi = v2t(odometry_pose(:,columns));
+        Xj = v2t(odometry_pose(:,columns+1));
+        robot_measurement(:,:,columns) = inv(Xi)*Xj;
+    endfor
 endfunction
