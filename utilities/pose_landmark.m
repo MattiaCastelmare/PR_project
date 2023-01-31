@@ -126,14 +126,14 @@ function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_lan
 
             H(pose_matrix_index:pose_matrix_index+pos_dim-1,
                 pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrr;
-                H(pose_matrix_index:pose_matrix_index+pos_dim-1,
+            H(pose_matrix_index:pose_matrix_index+pos_dim-1,
                 landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=Hrl;
-                H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
+            H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
                 landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=Hll;
-                H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
+            H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
                 pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrl';
-                b(pose_matrix_index:pose_matrix_index+pos_dim-1)+=br;
-                b(landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=bl;
+            b(pose_matrix_index:pose_matrix_index+pos_dim-1)+=br;
+            b(landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=bl;
         endfor
     endfor        
 endfunction
