@@ -316,11 +316,14 @@ function land_matrix_index = landmarkMatrixIndex(land_index, num_poses, num_land
     endif   
     
 endfunction
-
+# Robot measurements function
+# Input: odometry poses
+# Output: tensor in which each element is the relative position measured 
+# (1^st column relative position of the 2^nd pose w.r.t the 1^st one and so on)
 function robot_measurement = odometry_measure(odometry_pose);
     for columns = 1:(size(odometry_pose)(2) - 1)
         Xi = v2t(odometry_pose(:,columns));
         Xj = v2t(odometry_pose(:,columns+1));
-        robot_measurement(:,:,columns) = inv(Xi)*Xj;
+        robot_measurement(:,:,columns) = inv(Xi)*Xj; 
     endfor
 endfunction

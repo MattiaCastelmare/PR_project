@@ -47,6 +47,7 @@ endfunction
 #         Jr: 2x3 Jacobian w.r.t. the perturbation of the robot pose (x, y and theta)
 #         Jl: 2x3 Jacobian w.r.t. the perturbation of the landmark (xl, yl and zl)
 #         valid_point: boolean that indicates if the predicted point respects the bounds
+
 function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height)
 
     valid_point = 1;
@@ -65,7 +66,7 @@ function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr,
     pw = iR*Xl(1:end-1) + it; # poin in world reference frame
     Jwr(1:3,1:3) = -iR; # translation part of the robot Jacobian
     Jwr(1:3, 4:6) = iR*skew(Xl(1:end-1)); # rotation part of the robot Jacobian
-    Jwr = Jwr(1:3, [1,2,6]);
+    Jwr = Jwr(1:3, [1,2,6]); # since it is a PLANAR motion I consider only the first, the second and the last column of the Jacobian
     Jwl = iR; # landmark Jacobian
 
     Jr = Jproj*K*Jwr;

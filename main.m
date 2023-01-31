@@ -7,11 +7,12 @@ source "utilities/helpers.m"
 source "utilities/loader.m"
 source "utilities/pose_landmark.m"
 source "utilities/pose_pose.m"
+source "utilities/Total_least_square.m"
 
 
 global pos_dim = 3;
 global landmark_dim = 3;
-
+global Rz0;
 
 #load landmark data
 A = load("data/world.dat");
@@ -55,6 +56,8 @@ disp("***************** Loading measurement and creating data structure ********
 # Load measurement and create data structure 
 [pos, odometry_pose, dict_pos_land] = load_measurements();
 
+# Create a tensor in which the columnas are the number of measure while the matrix is the relative position of the pos i^th and j^th
+robot_measurement = odometry_measure(odometry_pose);
 
 disp("************************** Performing triangulation *****************************");
 ################## TRIANGULATION ##################
@@ -72,7 +75,22 @@ Xl_initial_guess = triangulation(K, T_cam, pos, odometry_pose, dict_pos_land); #
 
 threshold = 5000;
 num_poses = size(odometry_pose)(2);
-num_landmarks = 1000;
-disp("************************ Performing Total Least Square ***************************");
-[H, b, chi_tot, num_inliers] = Proj_H_b(K, T_cam, odometry_pose, Xl_initial_guess, dict_pos_land, num_poses, num_landmarks, threshold, pos_dim, landmark_dim, z_near, z_far, img_width, img_height);
-num_inliers
+num_landmarks = size(Xl_initial_guess)(2);
+
+Xr = odometry_pose;
+Xl = Xl_initial_guess;
+
+disp("************************ Performing Total Least Square **************************");
+[Hproj, bproj, chi_tot, num_inliers] = Proj_H_b(K, T_cam, Xr, Xl, dict_pos_land, num_poses, num_landmarks, threshold, pos_dim, landmark_dim, z_near, z_far, img_width, img_height);
+[Hpose, bpose, chi_stat, num_inliers] = Pose_H_b(Xr, robot_measurement, pos_dim, num_poses, num_landmarks, landmark_dim);
+size(Hproj)
+size(Hpose)
+size(bproj)
+size(bpose)
+
+#dx = -H\b;
+
+#disp("************************ Performing boxplus ***************************************");
+#[Xr, Xl] = boxPlus(odometry_pose, Xl_initial_guess, num_poses, num_landmarks, dx);
+
+################## REMEMBER TO DELETE THE LAST ROW IN XL BECAUSE IT IS IN HOMOGENOUS FORM [X;Y;Z;1]
