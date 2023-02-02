@@ -51,6 +51,9 @@ endfunction
 function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height)
 
     valid_point = 1;
+    if size(Xr)(1)==3
+        Xr = [Xr(1); Xr(2); 0; 0; 0; Xr(3)];
+    end
     Picp = eye(3,4)*inv(T_cam)*inv(v2t(Xr))*Xl; # icp point
     Pcam = K*Picp; # point in camera frame
 
@@ -88,7 +91,7 @@ endfunction
 # Output: H: matrix for the Gaussian algorithm
 #         b: vector for the Gaussian algorithm
 
-function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_land, num_poses, num_landmarks, threshold, pos_dim, landmark_dim, z_near, z_far, img_width, img_height)
+function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_land, num_poses, num_landmarks, threshold_proj, pos_dim, landmark_dim, z_near, z_far, img_width, img_height)
 
     system_size = pos_dim*num_poses + landmark_dim*num_landmarks;
     H = zeros(system_size, system_size);
@@ -102,38 +105,39 @@ function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_lan
             Xl = XL(:,landmark_index{1}); # in the matrix Xl i choose the columns corresponding to the k^th landmark
             Z = dict_pos_land(pose_index)(landmark_index{1})'; # projection of the k^th landmark in the i^th robot pose
 
-            [proj_error, Jr, Jl, point_not_valid] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height);
+            [proj_error, Jr, Jl, point_valid] = proj_ErrorandJacobian(K, T_cam, Xr, Xl, Z, z_near, z_far, img_width, img_height);
 
-            if point_not_valid
+            if point_valid
                 chi = proj_error'*proj_error;
-                if chi > threshold
-                    proj_error*= sqrt(threshold/chi);
-                    chi = threshold;
+                if chi > threshold_proj
+                    proj_error*= sqrt(threshold_proj/chi);
+                    chi = threshold_proj;
                 else
                     num_inliers +=1;
                 end
                 chi_stat += chi;
             
-            end
-            pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
-            landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
+            
+                pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
+                landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
 
-            Hrr = Jr'*Jr;
-            Hrl = Jr'*Jl;
-            Hll=Jl'*Jl;
-            br=Jr'*proj_error;
-            bl=Jl'*proj_error;
+                Hrr = Jr'*Jr;
+                Hrl = Jr'*Jl;
+                Hll=Jl'*Jl;
+                br=Jr'*proj_error;
+                bl=Jl'*proj_error;
 
-            H(pose_matrix_index:pose_matrix_index+pos_dim-1,
-                pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrr;
-            H(pose_matrix_index:pose_matrix_index+pos_dim-1,
-                landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=Hrl;
-            H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
-                landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=Hll;
-            H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
-                pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrl';
-            b(pose_matrix_index:pose_matrix_index+pos_dim-1)+=br;
-            b(landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=bl;
+                H(pose_matrix_index:pose_matrix_index+pos_dim-1,
+                    pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrr;
+                H(pose_matrix_index:pose_matrix_index+pos_dim-1,
+                    landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=Hrl;
+                H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
+                    landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=Hll;
+                H(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,
+                    pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrl';
+                b(pose_matrix_index:pose_matrix_index+pos_dim-1)+=br;
+                b(landmark_matrix_index:landmark_matrix_index+landmark_dim-1)+=bl;
+                end
         endfor
     endfor        
 endfunction

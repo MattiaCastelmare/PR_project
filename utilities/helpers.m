@@ -281,7 +281,8 @@ function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
                                       num_landmarks);
 
     dxr=dx(pose_matrix_index:pose_matrix_index+pos_dim-1);
-    XR(:,:,pose_index)=v2t2d(dxr)*v2t2d(Xr(:,pose_index));
+    vect = t2v2d(v2t2d(dxr)*v2t2d(Xr(:,pose_index)));
+    XR(:,pose_index)=[vect(1); vect(2);0;0;0; vect(3)];
     
   endfor;
   for(landmark_index=1:num_landmarks)

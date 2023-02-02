@@ -62,7 +62,11 @@ robot_measurement = odometry_measure(odometry_pose);
 disp("************************** Performing triangulation *****************************");
 ################## TRIANGULATION ##################
 
-Xl_initial_guess = triangulation(K, T_cam, pos, odometry_pose, dict_pos_land); # initial guess for landmarks position
+Xl_initial_guess = triangulation(K, 
+                                T_cam, 
+                                pos, 
+                                odometry_pose, 
+                                dict_pos_land); # initial guess for landmarks position
 #g = figure(2);
 #hold on;
 
@@ -73,7 +77,9 @@ Xl_initial_guess = triangulation(K, T_cam, pos, odometry_pose, dict_pos_land); #
 #pause(100)
 
 
-threshold = 5000;
+threshold_proj = 50000000;
+threshold_pose = 1000000000;
+num_iterations = 5;
 num_poses = size(odometry_pose)(2);
 num_landmarks = size(Xl_initial_guess)(2);
 
@@ -81,16 +87,26 @@ Xr = odometry_pose;
 Xl = Xl_initial_guess;
 
 disp("************************ Performing Total Least Square **************************");
-[Hproj, bproj, chi_tot, num_inliers] = Proj_H_b(K, T_cam, Xr, Xl, dict_pos_land, num_poses, num_landmarks, threshold, pos_dim, landmark_dim, z_near, z_far, img_width, img_height);
-[Hpose, bpose, chi_stat, num_inliers] = Pose_H_b(Xr, robot_measurement, pos_dim, num_poses, num_landmarks, landmark_dim);
-size(Hproj)
-size(Hpose)
-size(bproj)
-size(bpose)
-
-#dx = -H\b;
 
 #disp("************************ Performing boxplus ***************************************");
 #[Xr, Xl] = boxPlus(odometry_pose, Xl_initial_guess, num_poses, num_landmarks, dx);
 
 ################## REMEMBER TO DELETE THE LAST ROW IN XL BECAUSE IT IS IN HOMOGENOUS FORM [X;Y;Z;1]
+
+[Xl, Xr] = DoTLS(Xr,
+                Xl,
+                robot_measurement, 
+                pos_dim, 
+                num_poses, 
+                num_landmarks, 
+                landmark_dim, 
+                K, 
+                T_cam, 
+                dict_pos_land, 
+                z_near, 
+                z_far, 
+                img_width, 
+                img_height, 
+                threshold_pose,
+                threshold_proj,
+                num_iterations);
