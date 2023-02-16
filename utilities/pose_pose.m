@@ -31,7 +31,13 @@ function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
      
 endfunction
 
-function [H, b, chi_stat, num_inliers] = Pose_H_b(Xr, robot_measurement, pos_dim, num_poses, num_landmarks, landmark_dim, threshold_pose)
+function [H, b, chi_stat, num_inliers] = Pose_H_b(Xr, 
+                                                  robot_measurement, 
+                                                  pos_dim, 
+                                                  num_poses,
+                                                  num_landmarks, 
+                                                  landmark_dim, 
+                                                  threshold_pose)
 
     system_size = pos_dim*num_poses + landmark_dim*num_landmarks;
     H = zeros(system_size, system_size);
@@ -41,23 +47,30 @@ function [H, b, chi_stat, num_inliers] = Pose_H_b(Xr, robot_measurement, pos_dim
 
     for pose_index = 1:(size(Xr)(2) - 1)
         [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,pose_index);
+        omega = eye(12);
+        inlier = 1;
         
         chi = pose_error'*pose_error;
-            if chi > threshold_pose
-                pose_error*= sqrt(threshold_pose/chi);
-                chi = threshold_pose;
-            else
-                num_inliers +=1;
-            end
-            chi_stat += chi;
+        if chi > threshold_pose
+            omega*= sqrt(threshold_pose/chi);
+            chi = threshold_pose;
+            inlier = 0;
+        else
+            num_inliers +=1;
+        end
+        chi_stat += chi;
+
+        if ~inlier
+            continue
+        endif
             
         
-        Hii = Ji'*Ji;
-        Hij = Ji'*Jj;
-        Hjj = Jj'*Jj;
+        Hii = Ji'*omega*Ji;
+        Hij = Ji'*omega*Jj;
+        Hjj = Jj'*omega*Jj;
 
-        bi = Ji'*pose_error;
-        bj = Jj'*pose_error;
+        bi = Ji'*omega*pose_error;
+        bj = Jj'*omega*pose_error;
 
 
         pose_i_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);

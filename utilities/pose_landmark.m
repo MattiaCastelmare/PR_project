@@ -12,13 +12,19 @@ function Xl_initial_guess = triangulation(K, T_cam, pos, odometry_pose, dict_pos
 
     # create the dictionary 
     for i = 1:size(pos) # loop for all the robot poses
-        for k = keys(dict_pos_land(i)) # for all the keys of the dictionary
+
+        for k = keys(dict_pos_land(i)) # for all the keys (landmark id) of the dictionary of the robot poses
+        
             Proj_mat = cam*inv(v2t(odometry_pose(:,i))); # projection matrix
+
             measurement = dict_pos_land(i)(k{1}); # projection of landmark in that robot position
+
             eq1 = measurement(2)*Proj_mat(3,:) - Proj_mat(2,:); # first equation given by x=PX
+
             eq2 = Proj_mat(1,:) - measurement(1)*Proj_mat(3,:); # second equation given by x=PX
             
             if isKey(dict_matrix, k{1}) # if the landmark has been seen put the new equations below the old ones
+
                 dict_matrix(k{1}) = [dict_matrix(k{1});eq1; eq2];    
             else
                 dict_matrix(k{1}) = [eq1; eq2]; # if the landmark has NOT been seet initalize the dictionary key
@@ -116,16 +122,17 @@ function [H, b, chi_stat, num_inliers] = Proj_H_b(K, T_cam, XR, XL, dict_pos_lan
                     num_inliers +=1;
                 end
                 chi_stat += chi;
-            
+                
             
                 pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
                 landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
 
-                Hrr = Jr'*Jr;
-                Hrl = Jr'*Jl;
-                Hll=Jl'*Jl;
-                br=Jr'*proj_error;
-                bl=Jl'*proj_error;
+                omega = eye(2)*0.01; 
+                Hrr = Jr'*omega*Jr;
+                Hrl = Jr'*omega*Jl;
+                Hll=Jl'*omega*Jl;
+                br=Jr'*omega*proj_error;
+                bl=Jl'*omega*proj_error;
 
                 H(pose_matrix_index:pose_matrix_index+pos_dim-1,
                     pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrr;

@@ -279,9 +279,10 @@ function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
     pose_matrix_index=poseMatrixIndex(pose_index,
                                       num_poses,
                                       num_landmarks);
-
     dxr=dx(pose_matrix_index:pose_matrix_index+pos_dim-1);
-    vect = t2v2d(v2t2d(dxr)*v2t2d(Xr(:,pose_index)));
+
+    new = [Xr(:,pose_index)(1);Xr(:,pose_index)(2);Xr(:,pose_index)(6)];
+    vect = t2v2d(v2t2d(dxr)*v2t2d(new));
     XR(:,pose_index)=[vect(1); vect(2);0;0;0; vect(3)];
     
   endfor;
@@ -318,9 +319,11 @@ function land_matrix_index = landmarkMatrixIndex(land_index, num_poses, num_land
     
 endfunction
 # Robot measurements function
-# Input: odometry poses
-# Output: tensor in which each element is the relative position measured 
-# (1^st column relative position of the 2^nd pose w.r.t the 1^st one and so on)
+# Input: 
+#       - odometry poses
+# Output: 
+#        - tensor in which each element is the relative position measured 
+#          (i^th third dimension is the relative position of the i+1^th pose w.r.t the i^st one and so on)
 function robot_measurement = odometry_measure(odometry_pose);
     for columns = 1:(size(odometry_pose)(2) - 1)
         Xi = v2t(odometry_pose(:,columns));
