@@ -20,7 +20,6 @@ function Xl_initial_guess = triangulation(K,
 
         for k = keys(dict_pos_land(i)) # for all the keys (landmark id) of the dictionary of the robot poses
         
-
             measurement = dict_pos_land(i)(k{1}); # projection of landmark in that robot position
 
             eq1 = measurement(2)*Proj_mat(3,:) - Proj_mat(2,:); # first equation given by x=PX
@@ -32,17 +31,17 @@ function Xl_initial_guess = triangulation(K,
                 dict_matrix(k{1}) = [dict_matrix(k{1});eq1; eq2];    
             else
                 dict_matrix(k{1}) = [eq1; eq2]; # if the landmark has NOT been seet initalize the dictionary key
-            end
+            endif
 
-        end
-    end
+        endfor
+    endfor
   
     for lan = keys(dict_matrix)
         
         [U, D, V] = svd(dict_matrix(lan{1}));
         Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4); 1]; # the first column of the matrix V is the solution of the optimization problem AX=0
                                                                                     # I have to divide for the element in position (4,4) to have the landmarks in homogenous coordinate
-    end
+    endfor
 endfunction
 
 # Error and jacobian of projection
@@ -88,13 +87,20 @@ function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K,
     pw = iR*Xl(1:end-1) + it; # point in world reference frame
     Jwr(1:3,1:3) = -iR; # translation part of the robot Jacobian
     Jwr(:, 4:6) = iR*skew(Xl(1:end-1));  # rotation part of the robot Jacobian
-    Jwr = Jwr(1:3, [1,2,6]);  # since it is a PLANAR motion I consider only the first, the second and the last column of the Jacobian
+    Jwr = Jwr(1:3, [1,2,6]); # since it is a PLANAR motion I consider only the first, the second and the last column of the Jacobian
+
     Jwl = iR; # landmark Jacobian
 
     Jr = Jproj*K*Jwr;
     Jl = Jproj*K*Jwl;
+    
+    if (pw(3)> z_far || 
+       pw(3) < z_near || 
+       prediction(1) < 0 || 
+       prediction(1) > img_width || 
+       prediction(2) < 0 || 
+       prediction(2) > img_height);
 
-    if pw(3)> z_far || pw(3) < z_near || prediction(1) < 0 || prediction(1) > img_width || prediction(2) < 0 || prediction(2) > img_height;
         valid_point = 0;
     endif
      

@@ -2,8 +2,6 @@ source "utilities/helpers.m"
 function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
     # Flatten both prediction and measurement in order to have easier Jacobian and to not have box minus operation
 
-    global Rx0
-    global Ry0
     global Rz0
 
     Ri = (v2t(Xr(:,i)))(1:2,1:2);
@@ -11,10 +9,6 @@ function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
     
     ti = (v2t(Xr(:,i)))(1:2,4);
     tj = (v2t(Xr(:,i+1)))(1:2,4);
-
-    % g_alphax = Ri'*Rx0*Rj;
-    % g_alphay = Ri'*Ry0*Rj;
-
 
     g_alphaz = [Ri'*Rz0(1:2,1:2)*Rj, Ri'*Rz0(1:2,1:2)*tj];
     
@@ -55,9 +49,8 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr,
     for pose_index = 1:(size(Xr)(2) - 1)
         [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,pose_index);
         omega = eye(6);
-        omega(1:3,1:3)*=1e3; # pimp the rotation 
+        omega(1:3,1:3)*=1; # pimp the rotation 
         inlier = 1;
-        
         chi = pose_error'*omega*pose_error;
         if chi > threshold_pose
             omega*= sqrt(threshold_pose/chi);
