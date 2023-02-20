@@ -12,7 +12,7 @@ endfunction
 
 function [pos, odometry_pose, dict_pos_land] = load_measurements()
 
-    dict_pos_land = containers.Map('KeyType','double','ValueType','any'); # dict in which KEYS = number of robot poses VALUES = landmark dictionary
+    dict_pos_land = containers.Map('KeyType','double','ValueType','any'); # dict in which KEYS = i^th robot pose VALUES = landmark dictionary
 
     for i = 0 : 199
 

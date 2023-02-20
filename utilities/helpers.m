@@ -280,7 +280,6 @@ function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
                                       num_poses,
                                       num_landmarks);
     dxr=dx(pose_matrix_index:pose_matrix_index+pos_dim-1);
-
     new = [Xr(:,pose_index)(1);Xr(:,pose_index)(2);Xr(:,pose_index)(6)];
     vect = t2v2d(v2t2d(dxr)*v2t2d(new));
     XR(:,pose_index)=[vect(1); vect(2);0;0;0; vect(3)];
