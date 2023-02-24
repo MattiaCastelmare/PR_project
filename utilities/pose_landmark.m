@@ -177,7 +177,7 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(
                 pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
                 landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
 
-                omega = eye(2)*1; # CHANGE 
+                omega = eye(2)*0.01; # CHANGE 
                 Hrr = Jr'*omega*Jr;
                 Hrl = Jr'*omega*Jl;
                 Hlr = Jl'*omega*Jr;

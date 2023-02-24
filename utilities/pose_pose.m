@@ -58,6 +58,9 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr,
         else
             num_inliers ++;
         end
+        if ~inlier
+          continue
+        endif
         chi_stat += chi;
 
            
