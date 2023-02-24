@@ -252,26 +252,6 @@ endfunction;
 
 
 
-#computes the trajectory of the robot by chaining up
-#the incremental movements of the odometry vector
-#U:	a Nx3 matrix, each row contains the odoemtry ux, uy utheta
-#T:	a Nx3 matrix, each row contains the robot position (starting from 0,0,0)
-
-function T=compute_odometry_trajectory(U)
-	T=zeros(size(U,1),3);
-	current_T=v2t2d(zeros(1,3));
-	for i=1:size(U,1),
-		u=U(i,1:3)';
-		# this is P in the slides (thank bart)
-
-		# HINT : current_T is the absoulute pose obtained by concatenating 
-		# all the relative transformation until the current timestamp i
-		current_T *= v2t2d(u);
-		T(i,1:3)=t2v2d(current_T)';
-	endfor
-
-endfunction
-
 function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
   global pos_dim;
   global landmark_dim;
@@ -290,7 +270,7 @@ function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
                                                   num_poses,
                                                   num_landmarks);
     dxl=dx(landmark_matrix_index:landmark_matrix_index+landmark_dim-1,:);
-    XL(1:end-1,landmark_index)+=dxl;
+    XL(1:end-1,landmark_index)+=1.2*dxl;
   endfor;
 endfunction;
 

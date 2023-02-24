@@ -1,6 +1,7 @@
 source "utilities/helpers.m" 
 
-function Xl_initial_guess = triangulation(K, 
+function Xl_initial_guess = triangulation(
+                                          K, 
                                           T_cam, 
                                           pos, 
                                           odometry_pose, 
@@ -9,8 +10,6 @@ function Xl_initial_guess = triangulation(K,
     dict_matrix = containers.Map('KeyType','double','ValueType','any'); # dict in which KEYS = id of landmarks VALUES = matrix A for the optimization problem
 
     # The idea is to have a dictionary in which for each landmark I have the matrix A for the optimization problem AX=0, after constructing this dictionary
-    # I can simply apply the SVD of A for each landmark id UDV'= SVD(A). The solution of the problem will be the last column of the matrix V.
-
 
     cam = K*eye(3,4)*inv(T_cam); # first part of the projection matrix without the camera pose
 
@@ -21,7 +20,6 @@ function Xl_initial_guess = triangulation(K,
         for k = keys(dict_pos_land(i)) # for all the keys (landmark id) of the dictionary of the robot poses
         
             measurement = dict_pos_land(i)(k{1}); # projection of landmark in that robot position
-
             eq1 = measurement(2)*Proj_mat(3,:) - Proj_mat(2,:); # first equation given by x=PX
 
             eq2 = Proj_mat(1,:) - measurement(1)*Proj_mat(3,:); # second equation given by x=PX
@@ -39,8 +37,12 @@ function Xl_initial_guess = triangulation(K,
     for lan = keys(dict_matrix)
         
         [U, D, V] = svd(dict_matrix(lan{1}));
-        Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4); 1]; # the first column of the matrix V is the solution of the optimization problem AX=0
-                                                                                    # I have to divide for the element in position (4,4) to have the landmarks in homogenous coordinate
+        if size(dict_matrix(lan{1}),1) > 12
+            Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4); 1]; # the first column of the matrix V is the solution of the optimization problem AX=0
+                                                                                           # I have to divide for the element in position (4,4) to have the landmarks in homogenous coordinate
+        else 
+            Xl_initial_guess(:,lan{1}) = [0;0;0;1]; 
+        endif                                                                           
     endfor
 endfunction
 
@@ -57,7 +59,8 @@ endfunction
 #         Jl: 2x3 Jacobian w.r.t. the perturbation of the landmark (xl, yl and zl)
 #         valid_point: boolean that indicates if the predicted point respects the bounds
 
-function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K, 
+function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(
+                                                                   K, 
                                                                    T_cam,  
                                                                    Xr, 
                                                                    Xl, 
@@ -93,14 +96,18 @@ function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(K,
 
     Jr = Jproj*K*Jwr;
     Jl = Jproj*K*Jwl;
-    
+
     if (pw(3)> z_far || 
        pw(3) < z_near || 
        prediction(1) < 0 || 
        prediction(1) > img_width || 
        prediction(2) < 0 || 
-       prediction(2) > img_height);
+       prediction(2) > img_height)
 
+       valid_point = 0;
+        
+    endif
+    if Xl == [0;0;0;1];
         valid_point = 0;
     endif
      
@@ -116,20 +123,21 @@ endfunction
 # Output: H: matrix for the Gaussian algorithm
 #         b: vector for the Gaussian algorithm
 
-function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(K, 
-                                                  T_cam, 
-                                                  XR, 
-                                                  XL, 
-                                                  dict_pos_land, 
-                                                  num_poses, 
-                                                  num_landmarks, 
-                                                  threshold_proj, 
-                                                  pos_dim, 
-                                                  landmark_dim, 
-                                                  z_near, 
-                                                  z_far, 
-                                                  img_width, 
-                                                  img_height)
+function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(
+                                                                K, 
+                                                                T_cam, 
+                                                                XR, 
+                                                                XL, 
+                                                                dict_pos_land, 
+                                                                num_poses, 
+                                                                num_landmarks, 
+                                                                threshold_proj, 
+                                                                pos_dim, 
+                                                                landmark_dim, 
+                                                                z_near, 
+                                                                z_far, 
+                                                                img_width, 
+                                                                img_height)
 
     system_size = pos_dim*num_poses + landmark_dim*num_landmarks;
     H = zeros(system_size, system_size);
@@ -166,7 +174,6 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(K,
                 endif
                 chi_stat += chi;
             
-                
                 pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
                 landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
 

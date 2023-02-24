@@ -20,15 +20,13 @@ function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
     Jj(:,3) = reshape(g_alphaz,6,1);
     Ji = -Jj;
 
-    prediction(1:2,1:2)=Ri'*Rj;
-    prediction(1:2,3)=Ri'*(tj-ti);
+    prediction(1:2,1:2) = Ri'*Rj;
+    prediction(1:2,3) = Ri'*(tj-ti);
     Z(1:2,1:2) = robot_measurement(:,:,i)(1:2,1:2);
     Z(1:2,3) = robot_measurement(:,:,i)(1:2,4);
     pose_error = reshape((prediction - Z),6,1);
 
 
-
-     
 endfunction
 
 function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr, 
@@ -48,7 +46,7 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr,
 
     for pose_index = 1:(size(Xr)(2) - 1)
         [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,pose_index);
-        omega = eye(6);
+        omega = eye(6); 
         omega(1:3,1:3)*=1; # pimp the rotation 
         inlier = 1;
         chi = pose_error'*omega*pose_error;

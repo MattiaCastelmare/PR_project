@@ -193,7 +193,7 @@ error = 0;
 max_error = 0;
 id = 0;
 for i=1: size(Xl_sol)(2)
-    if Xl_sol(:,i) == zeros(3,1) # unseen landmark put it to 0 as default
+    if Xl_sol(:,i) == zeros(3,1) # for unseen landmarks not calculate the error
         continue
     endif
     ex = Xl_sol(1,i) - Xl_true(1,i);

@@ -1,4 +1,5 @@
-function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r] = DoTLS(XR,
+function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r, H] = DoTLS(
+                          XR,
                           XL, 
                           robot_measurement, 
                           pos_dim, 
@@ -16,6 +17,7 @@ function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r] = DoTL
                           threshold_proj,
                           damping,
                           num_iterations) 
+                          
     system_size = pos_dim*num_poses + landmark_dim*num_landmarks;
     chi_stats_l=zeros(1,num_iterations);
     num_inliers_l=zeros(1,num_iterations);
@@ -23,7 +25,8 @@ function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r] = DoTL
     num_inliers_r=zeros(1,num_iterations);
 
     for i=1:num_iterations
-
+        H=zeros(system_size, system_size);
+        b=zeros(system_size,1);
         [H_pose, b_pose, chi_r, inliers_r, num_outliers_pose] = Pose_H_b(
                                               XR, 
                                               robot_measurement, 
@@ -50,8 +53,8 @@ function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r] = DoTL
                                                        img_height);
 
         A = ["*********************** Iteration number ", num2str(i), " ***************************" ];
-        B = ["Projection error ", num2str(chi_l)];
-        C = ["Pose error ", num2str(chi_r)];
+        B = ["Chi landmark ", num2str(chi_l)];
+        C = ["Chi pose ", num2str(chi_r)];
         D = ["Number of projection inliers ", num2str(inliers_l)];
         G = ["Number of projection outliers ", num2str(num_outliers_proj)];
         E = ["Number of pose inliers ", num2str(inliers_r)];
@@ -63,11 +66,12 @@ function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r] = DoTL
         chi_stats_r(1,i)=chi_r;
         num_inliers_r(1,i)=inliers_r;
 
+        H_proj+=eye(size(H_proj))*damping; 
+
+        H = H_proj; +H_pose;
+        b = b_proj; +b_pose; 
         
-        H = H_proj+H_pose;
-        b = b_proj+b_pose; 
-        
-        H+=eye(size(H))*damping; 
+        H+=eye(size(H))*1; 
         dx = zeros(system_size,1);
         
         dx(pos_dim+1:end)=-(H(pos_dim+1:end,pos_dim+1:end)\b(pos_dim+1:end,1)); # block the first pose 
