@@ -12,4 +12,8 @@ Output of the problem:
  - Position of the 3D landmarks
  - Error values
  
- To run the code clone the repository and on the terminal run the command $ octave main.m
+ To run the code clone the repository and on the terminal run the command
+ ```
+$ octave main.m
+
+```
