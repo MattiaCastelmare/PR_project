@@ -12,8 +12,9 @@ Output of the problem:
  - Position of the 3D landmarks
  - Error values
  
- To run the code clone the repository and on the terminal run the command
+ To run the code clone the repository and run on the terminal the command
  ```
 $ octave main.m
 
 ```
+Here are reported only the visual results of the Total Least Square for further details read the report.pdf in the repo.
