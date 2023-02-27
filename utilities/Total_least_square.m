@@ -66,16 +66,18 @@ function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r, H] = D
         chi_stats_r(1,i)=chi_r;
         num_inliers_r(1,i)=inliers_r;
 
-        H_proj+=eye(size(H_proj))*damping; 
+        H_proj+=eye(size(H_proj))*1; 
 
-        H = H_proj; +H_pose;
-        b = b_proj; +b_pose; 
+        H = H_proj + H_pose;
+        b = b_proj + b_pose; 
         
-        H+=eye(size(H))*1; 
+        H+=eye(size(H))*damping; 
         dx = zeros(system_size,1);
         
         dx(pos_dim+1:end)=-(H(pos_dim+1:end,pos_dim+1:end)\b(pos_dim+1:end,1)); # block the first pose 
-
+        error = sum(abs(dx));
+        A = ["The perturbation is: ", num2str(error)];
+        disp(A)
         [XR, XL] = boxPlus(XR, XL, num_poses, num_landmarks, dx);
 
     

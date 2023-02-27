@@ -45,9 +45,12 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr,
     num_outliers = 0;
 
     for pose_index = 1:(size(Xr)(2) - 1)
+
         [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,pose_index);
-        omega = eye(6); 
-        omega(1:3,1:3)*=1; # pimp the rotation 
+        omega = eye(6)*1e3; 
+
+
+        omega(1:3,1:3)=1; # pimp the rotation 
         inlier = 1;
         chi = pose_error'*omega*pose_error;
         if chi > threshold_pose
@@ -71,7 +74,8 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr,
         Hji = Jj'*omega*Ji;
         bi = Ji'*omega*pose_error;
         bj = Jj'*omega*pose_error;
-
+        
+      
 
         pose_i_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
         pose_j_matrix_index = poseMatrixIndex(pose_index + 1, num_poses, num_landmarks);

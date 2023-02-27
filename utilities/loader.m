@@ -14,17 +14,17 @@ function [pos, odometry_pose, dict_pos_land] = load_measurements()
 
     dict_pos_land = containers.Map('KeyType','double','ValueType','any'); # dict in which KEYS = i^th robot pose VALUES = landmark dictionary
 
-    for i = 0 : 335
+    for i = 0 : 199
 
         if i < 10
         num = num2str(i);
-        filename = strcat("dataset/meas-0000",num,".dat");
+        filename = strcat("data/meas-0000",num,".dat");
         elseif i > 9 & i < 100
         num = num2str(i);
-        filename = strcat("dataset/meas-000",num,".dat");
+        filename = strcat("data/meas-000",num,".dat");
         else
         num = num2str(i);
-        filename = strcat("dataset/meas-00",num,".dat");    
+        filename = strcat("data/meas-00",num,".dat");    
         end
 
         #[a, b, c, d, f] = textread(filename);

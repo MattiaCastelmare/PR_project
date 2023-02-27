@@ -20,15 +20,18 @@ function Xl_initial_guess = triangulation(
         for k = keys(dict_pos_land(i)) # for all the keys (landmark id) of the dictionary of the robot poses
         
             measurement = dict_pos_land(i)(k{1}); # projection of landmark in that robot position
-            eq1 = measurement(2)*Proj_mat(3,:) - Proj_mat(2,:); # first equation given by x=PX
+            if measurement(1) > 50 && measurement(2) > 50
+                
+                eq1 = measurement(2)*Proj_mat(3,:) - Proj_mat(2,:); # first equation given by x=PX
 
-            eq2 = Proj_mat(1,:) - measurement(1)*Proj_mat(3,:); # second equation given by x=PX
-            
-            if isKey(dict_matrix, k{1}) # if the landmark has been seen put the new equations below the old ones
+                eq2 = Proj_mat(1,:) - measurement(1)*Proj_mat(3,:); # second equation given by x=PX
+                
+                if isKey(dict_matrix, k{1}) # if the landmark has been seen put the new equations below the old ones
 
-                dict_matrix(k{1}) = [dict_matrix(k{1});eq1; eq2];    
-            else
-                dict_matrix(k{1}) = [eq1; eq2]; # if the landmark has NOT been seet initalize the dictionary key
+                    dict_matrix(k{1}) = [dict_matrix(k{1});eq1; eq2];    
+                else
+                    dict_matrix(k{1}) = [eq1; eq2]; # if the landmark has NOT been seet initalize the dictionary key
+                endif
             endif
 
         endfor
@@ -37,12 +40,14 @@ function Xl_initial_guess = triangulation(
     for lan = keys(dict_matrix)
         
         [U, D, V] = svd(dict_matrix(lan{1}));
-        if size(dict_matrix(lan{1}),1) > 12
-            Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4); 1]; # the first column of the matrix V is the solution of the optimization problem AX=0
-                                                                                           # I have to divide for the element in position (4,4) to have the landmarks in homogenous coordinate
-        else 
-            Xl_initial_guess(:,lan{1}) = [0;0;0;1]; 
-        endif                                                                           
+        if size(D,2) == 4
+            if size(dict_matrix(lan{1}),1) > 7
+                Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4); 1]; # the first column of the matrix V is the solution of the optimization problem AX=0
+                                                                                            # I have to divide for the element in position (4,4) to have the landmarks in homogenous coordinate
+            else 
+                Xl_initial_guess(:,lan{1}) = [0;0;0;1]; 
+            endif 
+        endif                                                                          
     endfor
 endfunction
 
@@ -80,7 +85,6 @@ function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(
 
     prediction = [Pcam(1)/Pcam(3); Pcam(2)/Pcam(3)]; # point in image plane
     proj_error = prediction - Z;
-
     Jproj = [1./Pcam(3), 0, - Pcam(1)/(Pcam(3)**2);
             0,     1./Pcam(3), -Pcam(2)/(Pcam(3)**2)]; # Jacobian of the projection
 
@@ -96,7 +100,8 @@ function [proj_error, Jr, Jl, valid_point] = proj_ErrorandJacobian(
 
     Jr = Jproj*K*Jwr;
     Jl = Jproj*K*Jwl;
-
+    
+    
     if (pw(3)> z_far || 
        pw(3) < z_near || 
        prediction(1) < 0 || 
@@ -149,7 +154,10 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(
     for pose_index=1: size(XR)(2)
         Xr = XR(:,pose_index);
 
+
         for landmark_index = keys(dict_pos_land(pose_index))
+
+
             Xl = XL(:,landmark_index{1}); # in the matrix Xl i choose the columns corresponding to the k^th landmark
             Z = dict_pos_land(pose_index)(landmark_index{1})'; # projection of the k^th landmark in the i^th robot pose
             
@@ -177,7 +185,7 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(
                 pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks);
                 landmark_matrix_index = landmarkMatrixIndex(landmark_index{1}, num_poses, num_landmarks);
 
-                omega = eye(2)*0.01; # CHANGE 
+                omega = eye(2)*1e-2; # CHANGE 
                 Hrr = Jr'*omega*Jr;
                 Hrl = Jr'*omega*Jl;
                 Hlr = Jl'*omega*Jr;
@@ -185,6 +193,7 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Proj_H_b(
                 Hll=Jl'*omega*Jl;
                 br=Jr'*omega*proj_error;
                 bl=Jl'*omega*proj_error;
+  
 
                 H(pose_matrix_index:pose_matrix_index+pos_dim-1,
                   pose_matrix_index:pose_matrix_index+pos_dim-1)+=Hrr;
