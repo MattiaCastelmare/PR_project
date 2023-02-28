@@ -1,22 +1,22 @@
 function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r, H] = DoTLS(
-                          XR,
-                          XL, 
-                          robot_measurement, 
-                          pos_dim, 
-                          num_poses, 
-                          num_landmarks, 
-                          landmark_dim, 
-                          K, 
-                          T_cam, 
-                          dict_pos_land, 
-                          z_near, 
-                          z_far, 
-                          img_width, 
-                          img_height, 
-                          threshold_pose, 
-                          threshold_proj,
-                          damping,
-                          num_iterations) 
+                                                                                    XR,
+                                                                                    XL, 
+                                                                                    robot_measurement, 
+                                                                                    pos_dim, 
+                                                                                    num_poses, 
+                                                                                    num_landmarks, 
+                                                                                    landmark_dim, 
+                                                                                    K, 
+                                                                                    T_cam, 
+                                                                                    dict_pos_land, 
+                                                                                    z_near, 
+                                                                                    z_far, 
+                                                                                    img_width, 
+                                                                                    img_height, 
+                                                                                    threshold_pose, 
+                                                                                    threshold_proj,
+                                                                                    damping,
+                                                                                    num_iterations) 
                           
     system_size = pos_dim*num_poses + landmark_dim*num_landmarks;
     chi_stats_l=zeros(1,num_iterations);
@@ -77,9 +77,8 @@ function [XL, XR, chi_stats_l, num_inliers_l, chi_stats_r, num_inliers_r, H] = D
         dx(pos_dim+1:end)=-(H(pos_dim+1:end,pos_dim+1:end)\b(pos_dim+1:end,1)); # block the first pose 
         error = sum(abs(dx));
         A = ["The perturbation is: ", num2str(error)];
-        disp(A)
+        disp(A);
         [XR, XL] = boxPlus(XR, XL, num_poses, num_landmarks, dx);
-
     
     endfor
 endfunction
