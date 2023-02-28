@@ -18,4 +18,5 @@ Output :
 $ octave main.m
 
 ```
-Here are reported only the visual results of the Total Least Square for further details read the report.pdf in the repo.
+Here are reported the visual results of the Total Least Squares for further details read the report.pdf in the repo.
+![Screenshot from 2023-02-28 12-01-31](https://user-images.githubusercontent.com/94857717/221907693-51977272-fd18-42dc-9f1a-27afa7face4d.png)
