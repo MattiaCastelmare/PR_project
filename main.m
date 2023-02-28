@@ -35,17 +35,6 @@ disp("************************** LOADING MEASUREMENT ***************************
 
 [pos, odometry_pose, dict_pos_land] = load_measurements();
 
-% figure(1);
-% hold on;
-
-
-% plot(Xr_t(1,:),Xr_t(2,:), 'ro', 'linewidth', 3);
-% hold on;
-% plot(odometry_pose(1,:),odometry_pose(2,:), 'b-', 'linewidth', 4);
-% l1 = legend("Groundtruth", "Odometry poses");
-% set(l1, 'location','northoutside', 'fontsize', 14); grid;
-% pause()
-
 # Create a tensor in which the third dimension is the number of measure while the matrix is the relative position of the pos i^th and j^th
 
 robot_measurement = odometry_measure(odometry_pose); #disp("Xr true in robot measurement"); # odometry_pose or Xr_true
@@ -74,32 +63,25 @@ for pose=1:(size(Xr_gt,2) - 1)
     translation_error+=sqrt(error_T(1:2,3)(1)**2+error_T(1:2,3)(2)**2);
 endfor
 
-RMSE_translation = translation_error/(size(Xr_true,2)-1);
-ME_rotation = rotation_error/(size(Xr_true,2) - 1);
-P = ["RMSE of translation is ", num2str(RMSE_translation)];
-O = ["MEAN error of rotation is ", num2str(ME_rotation)];
+RMSE_translation = translation_error/(size(Xr_gt,2)-1);
+ME_rotation = rotation_error/(size(Xr_gt,2) - 1);
+P = ["RMSE of translation part of the odometry pose is ", num2str(RMSE_translation)];
+O = ["MEAN error of rotation part of the odometry pose is ", num2str(ME_rotation)];
 disp(P); disp(O);
 
 #################################################################################
 disp("************************** TRIANGULATION ****************************************");
 
-Xl_initial_guess= triangulation(K, 
+[Xl_initial_guess, num_lan_discard, num_lan_good]= triangulation(K, 
                                 T_cam, 
                                 pos, 
                                 odometry_pose, # odometry_pose or Xr_true
                                 dict_pos_land);  # disp("Xr true in triangulation");
+R = ["The number of landmarks discarded is: ", num2str(num_lan_discard)];
+C = ["The number of landmarks seen at least four times is: ", num2str(num_lan_good)];
+disp(R);
+disp(C);
 Xl_initial_guess = [Xl_initial_guess(1,:); Xl_initial_guess(2,:); Xl_initial_guess(3,:); ones(1, size(Xl_initial_guess,2))];
-
-% Xl_initial_guess = randn(4,1000); disp("Wrong landmark initial guess");
-
-% figure(2);
-
-% plot(Xl_true(1,:),Xl_true(2,:),'ro',"linewidth",3);
-% hold on;
-% plot(Xl_initial_guess(1,:),Xl_initial_guess(2,:),'b*','linewidth',2);
-% l1 = legend("Groundtruth", "Initial guess");
-% set(l1, 'location','northoutside', 'fontsize', 14); grid;
-% pause()
 
 ################ RMSE AFTER TRIANGULATION #######################
 
@@ -125,9 +107,9 @@ endfor
 
 MSE_initial = error/size(Xl_true)(2);
 
-R = ["RMSE initial guess ", num2str(MSE_initial)];
-C = ["Max RMSE ", num2str(max_error)];
-disp(R); disp(C);
+O = ["RMSE initial guess ", num2str(MSE_initial)];
+D = ["Max RMSE ", num2str(max_error)];
+disp(O); disp(D);
 
 #################################################################################
 
@@ -135,10 +117,10 @@ disp(R); disp(C);
 
 global pos_dim = 3;
 global landmark_dim = 3;
-global damping = 1; # CHANGE
-global threshold_proj = 10000; # CHANGE
-global threshold_pose = 10; # CHANGE 5 1 10
-global num_iterations = 1;
+global damping = 1; 
+global threshold_proj = 10000; 
+global threshold_pose = 10; 
+global num_iterations = 30;
 global num_poses = size(odometry_pose)(2);
 global num_landmarks = size(Xl_initial_guess)(2);
 
@@ -146,10 +128,6 @@ global num_landmarks = size(Xl_initial_guess)(2);
 
 Xr = odometry_pose;
 Xl = Xl_initial_guess;
-
-
-% Xr = Xr_true; disp("GT pose initial guess");
-% Xl = [Xl_true; ones(1,size(Xl_true)(2))]; disp("GT landmark initial guess");
 
 disp("************************** TOTAL LEAST SQUARE ***********************************");
 
@@ -179,6 +157,13 @@ disp("************************** PLOT ******************************************
 Xr_sol = [XR(1,:); XR(2,:); XR(6,:)]'; # 2D PLANAR MOTION only in x y and theta (the others are 0)
 Xr_sol_plot = [XR(1,:); XR(2,:); XR(6,:)];
 Xl_sol = XL(1:end-1,:); # coordinates in format (x y z)
+
+lan_to_remove = [0;0;0];
+% Identify the columns to remove using logical indexing
+cols_to_remove = all(Xl_sol == lan_to_remove, 1);
+% Remove the identified columns from each matrix
+Xl_sol(:, cols_to_remove) = [];
+Xl_true(:, cols_to_remove) = [];
 
 figure(1);
 hold on;
@@ -223,24 +208,34 @@ grid;
 title("chi evolution");
 
 subplot(3,2,1);
-plot(chi_stats_r, 'r-', "linewidth", 2);
+plot(chi_stats_r, 'r-', "linewidth", 3);
 l5 = legend("Chi Poses"); grid; xlabel("iterations");
 set(l5, 'location','northoutside', 'fontsize', 14);
 subplot(3,2,2);
-plot(num_inliers_r, 'b-', "linewidth", 2);
+plot(num_inliers_r, 'b-', "linewidth", 3);
 l6 = legend("# Pose inliers"); grid; xlabel("iterations");
 set(l6, 'location','northoutside', 'fontsize', 14);
 
 subplot(3,2,3);
-plot(chi_stats_l, 'r-', "linewidth", 2);
+plot(chi_stats_l, 'r-', "linewidth", 3);
 l7 = legend("Chi Landmark"); grid; xlabel("iterations");
 set(l7, 'location','northoutside', 'fontsize', 14);
 subplot(3,2,4);
-plot(num_inliers_l, 'b-', "linewidth", 2);
+plot(num_inliers_l, 'b-', "linewidth", 3);
 l8 = legend("# Landmark inliers"); grid; xlabel("iterations");
 set(l8, 'location','northoutside', 'fontsize', 14);
 
-pause();
+
+############################# 3D Plotting #######################################
+
+figure(3);
+title("3D plotting of the map");
+scatter3(Xl_true(1,:),Xl_true(2,:),Xl_true(3,:), 'r');
+hold on;
+scatter3(Xl_sol(1,:),Xl_sol(2,:),Xl_sol(3,:), 'b');
+l9 = legend("Groundtruth", "LS solution landmarks");
+set(l9, 'location','northoutside', 'fontsize', 14);
+pause()
 
 
 #################################################################################
@@ -273,9 +268,9 @@ for i=1: size(Xl_sol)(2)
 endfor
 
 MSE_initial = error/size(Xl_true)(2);
-O = ["RMSE of landmarks after least square is ", num2str(MSE_initial)];
-D = ["The maximum value of landmarks RMSE is ", num2str(max_error)];
-disp(O); disp(D);
+D = ["RMSE of landmarks after least square is ", num2str(MSE_initial)];
+I = ["The maximum value of landmarks RMSE is ", num2str(max_error)];
+disp(D); disp(I);
 
 ###############################################################################
 
@@ -301,17 +296,17 @@ for pose=1:(size(Xr_true,2) - 1)
     translation_error+=sqrt(error_T(1:2,3)(1)**2+error_T(1:2,3)(2)**2);
 endfor
 
-RMSE_translation = translation_error/(size(Xr_true,2));
+RMSE_translation = translation_error/(size(Xr_true,2)-1);
 ME_rotation = rotation_error/(size(Xr_true,2) - 1);
-I = ["RMSE of translation is ", num2str(RMSE_translation)];
-O = ["Mean error of rotation is ", num2str(ME_rotation)];
-disp(I); disp(O);
+O = ["RMSE of translation part of the LS solution is ", num2str(RMSE_translation)];
+O2 = ["Mean error of rotation part of the LS solution is ", num2str(ME_rotation)];
+disp(O); disp(O2);
 
 #################################################################################
 
 disp("************************ H Matrix ****************************************");
 
-figure(3);
+figure(4);
 title("H matrix");
 H_ =  H./H;                      # NaN and 1 element
 H_(isnan(H_))=0;                 # Nan to Zero
