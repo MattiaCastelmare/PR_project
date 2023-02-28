@@ -1,6 +1,6 @@
 source "utilities/helpers.m" 
 
-function Xl_initial_guess = triangulation(
+function [Xl_initial_guess, lan_discard, lan_good] = triangulation(
                                           K, 
                                           T_cam, 
                                           pos, 
@@ -36,7 +36,8 @@ function Xl_initial_guess = triangulation(
 
         endfor
     endfor
-  
+    lan_discard = 0;
+    lan_good = 0;
     for lan = keys(dict_matrix)
         
         [U, D, V] = svd(dict_matrix(lan{1}));
@@ -44,8 +45,10 @@ function Xl_initial_guess = triangulation(
             if size(dict_matrix(lan{1}),1) > 7
                 Xl_initial_guess(:,lan{1}) = [V(1,4)/V(4,4); V(2,4)/V(4,4); V(3,4)/V(4,4); 1]; # the first column of the matrix V is the solution of the optimization problem AX=0
                                                                                             # I have to divide for the element in position (4,4) to have the landmarks in homogenous coordinate
+                lan_good+=1;
             else 
-                Xl_initial_guess(:,lan{1}) = [0;0;0;1]; 
+                Xl_initial_guess(:,lan{1}) = [0;0;0;1];
+                lan_discard+=1;
             endif 
         endif                                                                          
     endfor

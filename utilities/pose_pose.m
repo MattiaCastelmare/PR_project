@@ -1,4 +1,15 @@
 source "utilities/helpers.m"
+
+# Error and jacobian of projection
+# Input: Xr: robot poses
+#        robot_measurement: relative position of the i+1^th robot pose w.r.t. i^th robot pose
+#        i: pose index
+#
+# Output: pose_error: 6x1 flatten pose error
+#         Jj: 6x3 Jacobian w.r.t. the perturbation of the i^th robot pose (xi, yi and thetai)
+#         Ji: 6x3 Jacobian w.r.t. the perturbation of the i+1^th robot pose (xj, yj, thetaj)
+
+
 function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
     # Flatten both prediction and measurement in order to have easier Jacobian and to not have box minus operation
 
@@ -25,8 +36,6 @@ function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
     Z(1:2,1:2) = robot_measurement(:,:,i)(1:2,1:2);
     Z(1:2,3) = robot_measurement(:,:,i)(1:2,4);
     pose_error = reshape((prediction - Z),6,1);
-
-
 endfunction
 
 function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr, 
@@ -49,9 +58,7 @@ function [H, b, chi_stat, num_inliers, num_outliers] = Pose_H_b(Xr,
         [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,pose_index);
         omega = eye(6)*1e3; 
 
-
-        omega(1:3,1:3)=1; # pimp the rotation 
-        inlier = 1;
+        inlier = 1; # boolean for the inlier
         chi = pose_error'*omega*pose_error;
         if chi > threshold_pose
             omega*= sqrt(threshold_pose/chi);
