@@ -274,7 +274,6 @@ function [XR, XL]=boxPlus(Xr, XL, num_poses, num_landmarks, dx)
   endfor;
 endfunction;
 
-
 function pose_matrix_index = poseMatrixIndex(pose_index, num_poses, num_landmarks)
     global pos_dim;
     global landmark_dim;

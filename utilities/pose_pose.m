@@ -9,7 +9,6 @@ source "utilities/helpers.m"
 #         Jj: 6x3 Jacobian w.r.t. the perturbation of the i^th robot pose (xi, yi and thetai)
 #         Ji: 6x3 Jacobian w.r.t. the perturbation of the i+1^th robot pose (xj, yj, thetaj)
 
-
 function [pose_error, Jj, Ji] = pose_ErrorandJacobian(Xr, robot_measurement,i)
     # Flatten both prediction and measurement in order to have easier Jacobian and to not have box minus operation
 

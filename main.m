@@ -21,7 +21,6 @@ disp('************************** CAMERA DATA ***********************************
 
 [K, T_cam, z_near, z_far, img_width, img_height] = load_camera_parameters();
 
-
 #load trajectory data #
 disp('************************** TRAJECTORY DATA **************************************');
 
@@ -303,7 +302,7 @@ O2 = ["Mean error of rotation part of the LS solution is ", num2str(ME_rotation)
 disp(O); disp(O2);
 
 #################################################################################
-
+# The following code was taken from https://gitlab.com/grisetti/probabilistic_robotics_2018_19  
 disp("************************ H Matrix ****************************************");
 
 figure(4);

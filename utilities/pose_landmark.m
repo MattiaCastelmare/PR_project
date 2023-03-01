@@ -39,7 +39,6 @@ function [Xl_initial_guess, lan_discard, lan_good] = triangulation(
     lan_discard = 0;
     lan_good = 0;
     for lan = keys(dict_matrix)
-        
         [U, D, V] = svd(dict_matrix(lan{1}));
         if size(D,2) == 4
             if size(dict_matrix(lan{1}),1) > 7

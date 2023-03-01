@@ -1,7 +1,6 @@
 function [K, T_cam, z_near, z_far, widht, height] = load_camera_parameters()
 
     data_camera = dlmread("dataset/camera.dat");
-
     K = data_camera(2:4,1:3);
     T_cam = data_camera(6:9, 1:4);
     z_near = data_camera(10,2);
