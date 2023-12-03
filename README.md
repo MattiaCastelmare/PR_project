@@ -17,7 +17,7 @@ Output :
 ```
 $ git clone https://github.com/MattiaCastelmare/Pr_project.git
 ```
-$ git clone Pr_project/ 
+$ git clone Pr_project.m 
 ```
 $ octave main.m
 
