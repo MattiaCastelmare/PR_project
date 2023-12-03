@@ -13,11 +13,14 @@ Output :
  - Position of the 3D landmarks
  - Error values
  
- To run the code clone the repository and run on the terminal the command
+ To run the code clone the repository: 
 ```
 $ git clone https://github.com/MattiaCastelmare/Pr_project.git
 ```
-$ octave main.m
+then go in the right folder:
+
+$ cd Pr_project/
+and run the following command:
 ```
 $ octave main.m
 
