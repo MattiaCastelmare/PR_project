@@ -18,8 +18,9 @@ Output :
 $ git clone https://github.com/MattiaCastelmare/Pr_project.git
 ```
 then go in the right folder:
-
+```
 $ cd Pr_project/
+```
 and run the following command:
 ```
 $ octave main.m
