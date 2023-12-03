@@ -14,9 +14,9 @@ Output :
  - Error values
  
  To run the code clone the repository and run on the terminal the command
- ```
+```
 $ git clone https://github.com/MattiaCastelmare/Pr_project.git
- ```
+```
 $ cd Pr_project/ 
 ```
 $ octave main.m
