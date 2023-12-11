@@ -15,15 +15,15 @@ Output :
  
  To run the code clone the repository: 
 ```
-$ git clone https://github.com/MattiaCastelmare/Pr_project.git
+git clone https://github.com/MattiaCastelmare/Pr_project.git
 ```
 then go in the right folder:
 ```
-$ cd Pr_project/
+cd Pr_project/
 ```
 and run the following command:
 ```
-$ octave main.m
+octave main.m
 
 ```
 Here are reported the visual results of the Total Least Squares for further details read the report.pdf in the repo.
